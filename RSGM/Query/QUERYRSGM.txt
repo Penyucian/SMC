@@ -1,0 +1,467 @@
+/* SET LOCAL_INFILE = 1 */
+SET GLOBAL local_infile = 1;
+exit;
+
+/* LOGIN */
+mysql --local-infile=1 -u root -p
+
+/*1st QUERY */
+
+
+CREATE SCHEMA hospital ;
+use hospital;
+CREATE TABLE hospital.tc_mr (FS_MR bigint, FD_TGL_MR text, FS_NM_ALIAS text, FS_NM_PASIEN text, FS_ALM_PASIEN text, FS_ALM2_PASIEN text, FS_KOTA_PASIEN text, FS_KD_POS_PASIEN text, FS_TLP_PASIEN text, FS_KD_IDENTITAS text, FS_KD_KELURAHAN bigint, FS_TEMP_LAHIR text, FD_TGL_LAHIR text, FS_GOL_DARAH text, FS_JNS_KELAMIN text, FS_KD_AGAMA text, FS_KD_PEKERJAAN_DK text, FS_KD_PENDIDIKAN_DK text, FS_KD_STATUS_KAWIN_DK text, FS_MR_IBU text, FS_KD_PETUGAS text, FS_NM_KELUARGA text, FS_HUB_KELUARGA text, FS_TELP_KELUARGA text, FS_ALM1_KELUARGA text, FS_ALM2_KELUARGA text, FS_KOTA_KELUARGA text, FS_KD_POS_KELUARGA text, FD_TGL_KUNJUNGAN_AKHIR text, FD_TGL_MATI text, FI_PICTURE text, FN_KUNJUNGAN_KE int, FS_ALERGI_MAKANAN text, FS_ALERGI_OBAT text, FS_KD_SUKU text, FS_LAYANAN_TERAKHIR text, FS_NM_IBU_KANDUNG text, FS_WARGA_NEGARA text, fs_jam_lahir text, fs_mr_lama text, fs_mr_generate bigint, fs_kd_peg text, fn_cetak_rm01 int, fn_cetak_label int, fb_aktif int, FD_TGL_ENTRY text, FS_JAM_ENTRY text, FS_KD_PTG_ENTRY text, FS_NO_HP text, FS_NO_FAX text, FS_EMAIL text);
+LOAD DATA LOCAL INFILE 'D:/Workspaces/SMC/Data/RSGM/2020.09.16.CSV-DB/TC_MR.csv' INTO TABLE hospital.TC_MR FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS;
+ALTER TABLE hospital.tc_mr ADD ID INT(6) AFTER FS_MR;
+delete from hospital.tc_mr where FD_TGL_MR like '%3000%';
+update hospital.tc_mr set id = substring(fs_mr, 9, 15);
+ALTER TABLE hospital.tc_mr 
+CHANGE COLUMN FS_MR FS_MR BIGINT NOT NULL ,
+CHANGE COLUMN ID ID INT(6) UNSIGNED ZEROFILL NULL DEFAULT NULL ,
+ADD PRIMARY KEY (FS_MR);
+alter table hospital.tc_mr add nik char(30) after id;
+update hospital.tc_mr set nik = fs_kd_identitas;
+alter table hospital.tc_mr add name varchar(100) after nik;
+update hospital.tc_mr set name = fs_nm_pasien;
+alter table hospital.tc_mr add sex enum('Laki-laki','Perempuan') after name;
+update hospital.tc_mr set sex = 'Laki-laki' where tc_mr.FS_JNS_KELAMIN = 'p';
+update hospital.tc_mr set sex = 'Laki-laki' where tc_mr.FS_JNS_KELAMIN = '1';
+update hospital.tc_mr set sex = 'Perempuan' where tc_mr.FS_JNS_KELAMIN = '0';
+update hospital.tc_mr set sex = 'Perempuan' where tc_mr.FS_JNS_KELAMIN = 'w';
+update hospital.tc_mr set sex = 'Laki-laki' where sex is null;
+alter table hospital.tc_mr add birth_place varchar(100) after sex;
+update hospital.tc_mr set birth_place = fs_temp_lahir;
+alter table hospital.tc_mr add birth_date date after birth_place;
+UPDATE hospital.tc_mr SET FD_TGL_LAHIR = '' WHERE (FS_MR = '212021200028988');
+UPDATE hospital.tc_mr SET FD_TGL_LAHIR = '' WHERE (FS_MR = '212021200016654');
+UPDATE hospital.tc_mr SET FD_TGL_LAHIR = '' WHERE (FS_MR = '212021200018245');
+UPDATE hospital.tc_mr SET FD_TGL_LAHIR = '' WHERE (FS_MR = '212021200004460');
+UPDATE hospital.tc_mr SET FD_TGL_LAHIR = '' WHERE (FS_MR = '212021200013220');
+UPDATE hospital.tc_mr SET FD_TGL_LAHIR = '' WHERE (FS_MR = '212021200024584');
+UPDATE hospital.tc_mr SET birth_date = STR_TO_DATE(fd_tgl_lahir, '%Y-%m-%d');
+alter table hospital.tc_mr add golongan_darah enum('A','B','AB','O') after birth_date;
+update hospital.tc_mr set golongan_darah = 'A' where FS_GOL_DARAH = 'A';
+update hospital.tc_mr set golongan_darah = 'B' where FS_GOL_DARAH = 'B';
+update hospital.tc_mr set golongan_darah = 'AB' where FS_GOL_DARAH = 'AB';
+update hospital.tc_mr set golongan_darah = 'O' where FS_GOL_DARAH = 'O';
+alter table hospital.tc_mr add address varchar(255) after golongan_darah;
+update hospital.tc_mr set address = fs_alm_pasien;
+alter table hospital.tc_mr add suku_id int(2) after address;
+update hospital.tc_mr set suku_id = 1 where fs_kd_suku = '001';
+update hospital.tc_mr set suku_id = 2 where fs_kd_suku = '002';
+update hospital.tc_mr set suku_id = 6 where fs_kd_suku = '005';
+alter table hospital.tc_mr add bahasa_id int after suku_id;
+update hospital.tc_mr set bahasa_id = 1;
+alter table hospital.tc_mr add buta_huruf char(1) after bahasa_id;
+alter table hospital.tc_mr add sign_language char(1) after buta_huruf;
+alter table hospital.tc_mr add agama_id int after sign_language;
+alter table hospital.tc_mr add village_id char(10) after agama_id;
+alter table hospital.tc_mr add sub_district_id char(7) after village_id;
+alter table hospital.tc_mr add district_id char(4) after sub_district_id;
+alter table hospital.tc_mr add province_id char(2) after district_id;
+alter table hospital.tc_mr add education_id tinyint after province_id;
+update hospital.tc_mr set province_id = 34 where address like '%KP%' or address like '%bantul%' or address like '%progo%' or address like '%BTL%' or address like '%SLM%' or address like '%yogya%' or address like '%jogja%' or address like '%sleman%'
+ or address like '%lendah%'  or address like '%temon%'  or address like '%wates%' or address like '%panjatan%' or address like '%galur%' or address like '%sentolo%' or address like '%pengasih%' or address like '%kokap%' or address like '%girimulyo%' or address like '%nanggulan%' or address like '%kalibawang%' or address like '%samigaluh%'
+ or address like '%srandakan%'  or address like '%sanden%'  or address like '%kretek%' or address like '%pundong%' or address like '%bambang lipuro%' or address like '%bambanglipuro%' or address like '%pandak%' or address like '%bantul%' or address like '%jetis%' or address like '%imogiri%' or address like '%dlingo%' or address like '%pleret%' or address like '%piyungan%' or address like '%banguntapan%' or address like '%sewon%' or address like '%kasihan%' or address like '%pajangan%' or address like '%sedayu%'
+ or address like '%panggang%' or address like '%purwosari%' or address like '%paliyan%' or address like '%saptosari%' or address like '%sapto sari%' or address like '%tepus%' or address like '%tanjungsari%' or address like '%tanjung sari%' or address like '%rongkop%' or address like '%girisubo%' or address like '%semanu%' or address like '%ponjong%' or address like '%karangmojo%' or address like '%playen%' or address like '%patuk%' or address like '%gedang sari%' or address like '%gedangsari%' or address like '%nglipar%' or address like '%ngawen%' or address like '%semin%'
+ or address like '%moyudan%' or address like '%minggir%' or address like '%seyegan%' or address like '%godean%' or address like '%gamping%' or address like '%mlati%' or address like '%depok%' or address like '%berbah%' or address like '%prambanan%' or address like '%kalasan%' or address like '%ngemplak%' or address like '%ngaglik%' or address like '%sleman%' or address like '%tempel%' or address like '%turi%' or address like '%pakem%' or address like '%cangkringan%'
+ or address like '%mantrijeron%' or address like '%kraton%' or address like '%mergangsan%' or address like '%umbulharjo%' or address like '%kotagede%' or address like '%gondokusuman%' or address like '%danurejan%' or address like '%pakualaman%' or address like '%gondomanan%' or address like '%ngampilan%' or address like '%wirobrajan%' or address like '%gedong tengen%' or address like '%gedongtengen%' or address like '%jetis%' or address like '%tegalrejo%';
+
+update hospital.tc_mr set district_id = 3471 where province_id = 34 and district_id is null or address like '%mantrijeron%' or address like '%kraton%' or address like '%mergangsan%' or address like '%umbulharjo%' or address like '%kotagede%' or address like '%gondokusuman%' or address like '%danurejan%' or address like '%pakualaman%' or address like '%gondomanan%' or address like '%ngampilan%' or address like '%wirobrajan%' or address like '%gedong tengen%' or address like '%gedongtengen%' or address like '%jetis%' or address like '%tegalrejo%';
+
+update hospital.tc_mr set district_id = 3402 where province_id = 34 and address like '%btl%' or address like '%bantul%'  or address like '%srandakan%'  or address like '%sanden%'  or address like '%kretek%' or address like '%pundong%' or address like '%bambang lipuro%' or address like '%bambanglipuro%' or address like '%pandak%' or address like '%bantul%' or address like '%jetis%' or address like '%imogiri%' or address like '%dlingo%' or address like '%pleret%' or address like '%piyungan%' or address like '%banguntapan%' or address like '%sewon%' or address like '%kasihan%' or address like '%pajangan%' or address like '%sedayu%';
+
+update hospital.tc_mr set district_id = 3401 where province_id = 34 and district_id is null and address like '%KP%'  or address like '%lendah%'  or address like '%temon%'  or address like '%wates%' or address like '%panjatan%' or address like '%galur%' or address like '%sentolo%' or address like '%pengasih%' or address like '%kokap%' or address like '%girimulyo%' or address like '%nanggulan%' or address like '%kalibawang%' or address like '%samigaluh%' or address like '%progo%';
+
+update hospital.tc_mr set district_id = 3403 where province_id = 34 and address like '%gk%' or address like '%gunung kidul%' or address like '%gunungkidul%'  or address like '%panggang%' or address like '%purwosari%' or address like '%paliyan%' or address like '%saptosari%' or address like '%sapto sari%' or address like '%tepus%' or address like '%tanjungsari%' or address like '%tanjung sari%' or address like '%rongkop%' or address like '%girisubo%' or address like '%semanu%' or address like '%ponjong%' or address like '%karangmojo%' or address like '%playen%' or address like '%patuk%' or address like '%gedang sari%' or address like '%gedangsari%' or address like '%nglipar%' or address like '%ngawen%' or address like '%semin%';
+
+update hospital.tc_mr set district_id = 3404 where province_id = 34 and address like '%sleman%' or address like '%slm%' or address like '%moyudan%' or address like '%minggir%' or address like '%seyegan%' or address like '%godean%' or address like '%gamping%' or address like '%mlati%' or address like '%depok%' or address like '%berbah%' or address like '%prambanan%' or address like '%kalasan%' or address like '%ngemplak%' or address like '%ngaglik%' or address like '%sleman%' or address like '%tempel%' or address like '%turi%' or address like '%pakem%' or address like '%cangkringan%';
+
+update hospital.tc_mr set sub_district_id = 3401010 where sub_district_id is null and district_id = 3401 and address like '%temon%' or address like '%jangkaran%' or address like '%sindutan%' or address like '%palihan%' or address like '%glagah%' or address like '%kalidengen%' or address like '%kali dengen%' or address like '%plumbon%' or address like '%kedundang%' or address like '%DEMEN%' or address like '%kulur%' or address like '%KALIGINTUNG%' or address like '%KALI GINTUNG%' or address like '%temon wetan%' or address like '%temonwetan%' or address like '%temon kulon%' or address like '%temonkulon%' or address like '%kebonrejo%' or address like '%kebon rejo%' or address like '%janten%' or address like '%karang wuluh%' or address like '%karangwuluh%';
+update hospital.tc_mr set sub_district_id = 3401020 where sub_district_id is null and district_id = 3401 and address like '%KARANG WUNI%' or address like '%KARANGWUNI%' or address like '%sogan%' or address like '%kulwaru%' or address like '%ngestiharjo%' or address like '%triharjo%' or address like '%bendungan%' or address like '%giripeni%' or address like '%giri peni%' or address like '%wates%';
+
+update hospital.tc_mr set sub_district_id = 3401030 where sub_district_id is null and district_id = 3401 and address like '%panjatan%' or address like '%garongan%' or address like '%pleret%' or address like '%bugel%' or address like '%kanoman%' or address like '%depok%' or address like '%bojong%' or address like '%tayuban%' or address like '%gotakan%' or address like '%cerme%' or address like '%krembangan%';
+
+update hospital.tc_mr set sub_district_id = 3401040 where sub_district_id is null and district_id = 3401 and address like '%galur%' or address like '%karang sewu%' or address like '%karangsewu%' or address like '%banaran%' or address like '%kranggan%' or address like '%nomporejo%' or address like '%brosot%' or address like '%pandowan%' or address like '%tirta rahayu%' or address like '%tirtarahayu%';
+
+update hospital.tc_mr set sub_district_id = 3401050 where sub_district_id is null and district_id = 3401 and address like '%lendah%' or address like '%wahyuharjo%' or address like '%bumirejo%' or address like '%jatirejo%' or address like '%sidorejo%' or address like '%gulurejo%' or address like '%ngentakrejo%';
+
+update hospital.tc_mr set sub_district_id = 3401060 where sub_district_id is null and district_id = 3401 and address like '%sentolo%' or address like '%demangrejo%' or address like '%srikayangan%' or address like '%tuksono%' or address like '%salamrejo%' or address like '%sukoreno%' or address like '%kaliagung%' or address like '%banguncipto%';
+
+update hospital.tc_mr set sub_district_id = 3401070 where sub_district_id is null and district_id = 3401 and address like '%pengasih%' or address like '%tawangsari%' or address like '%karangsari%' or address like '%kedungsari%' or address like '%margosari%' or address like '%sendangsari%' or address like '%sidomulyo%';
+
+update hospital.tc_mr set sub_district_id = 3401080 where sub_district_id is null and district_id = 3401 and address like '%kokap%' or address like '%hargomulyo%' or address like '%hargorejo%' or address like '%hargowilis%' or address like '%kalirejo%' or address like '%hargotirto%';
+
+update hospital.tc_mr set sub_district_id = 3401090 where sub_district_id is null and district_id = 3401 and address like '%girimulyo%' or address like '%jatimulyo%' or address like '%giripurwo%' or address like '%pendoworejo%' or address like '%purwosari%';
+
+update hospital.tc_mr set sub_district_id = 3401100 where sub_district_id is null and district_id = 3401 and address like '%nanggulan%' or address like '%banyuroto%' or address like '%donomulyo%' or address like '%wijimulyo%' or address like '%tanjungharjo%' or address like '%jati sarono%' or address like '%jatisarono%' or address like '%kembang%';
+
+update hospital.tc_mr set sub_district_id = 3401110 where sub_district_id is null and district_id = 3401 and address like '%kalibawang%' or address like '%kali bawang%' or address like '%banjararum%' or address like '%banjarasri%' or address like '%banjarharjo%' or address like '%banjaroyo%';
+
+update hospital.tc_mr set sub_district_id = 3401120 where sub_district_id is null and district_id = 3401 and address like '%samigaluh%' or address like '%kebonharjo%' or address like '%kebon harjo%' or address like '%banjarsari%' or address like '%purwoharjo%' or address like '%sidoharjo%' or address like '%gerbosari%' or address like '%ngargosari%' or address like '%pagerharjo%';
+
+update hospital.tc_mr set sub_district_id = 3402010 where sub_district_id is null and district_id = 3402 and address like '%srandakan%' or address like '%poncosari%' or address like '%trimurti%';
+
+update hospital.tc_mr set sub_district_id = 3402020 where sub_district_id is null and district_id = 3402 and address like '%sanden%' or address like '%gadingsari%' or address like '%gadingharjo%' or address like '%srigading%' or address like '%murtigading%';
+
+update hospital.tc_mr set sub_district_id = 3402030 where sub_district_id is null and district_id = 3402 and address like '%kretek%' or address like '%tirtohargo%' or address like '%parangtritis%' or address like '%donotirto%' or address like '%tirtosari%' or address like '%tirtomulyo%';
+
+update hospital.tc_mr set sub_district_id = 3402040 where sub_district_id is null and district_id = 3402 and address like '%pundong%' or address like '%seloharjo%' or address like '%panjangrejo%' or address like '%srihardono%';
+
+update hospital.tc_mr set sub_district_id = 3402050 where sub_district_id is null and district_id = 3402 and address like '%bambanglipuro%' or address like '%bambang lipuro%' or address like '%sidomulyo%' or address like '%mulyodadi%' or address like '%sumbermulyo%';
+
+update hospital.tc_mr set sub_district_id = 3402060 where sub_district_id is null and district_id = 3402 and address like '%pandak%' or address like '%caturharjo%' or address like '%triharjo%' or address like '%gilangharjo%' or address like '%wijirejo%';
+
+update hospital.tc_mr set sub_district_id = 3402080 where sub_district_id is null and district_id = 3402 and address like '%jetis%' or address like '%patalan%' or address like '%canden%' or address like '%trimulyo%' or address like '%sumberagung%' or address like '%sumber agung%';
+
+update hospital.tc_mr set sub_district_id = 3402090 where sub_district_id is null and district_id = 3402 and address like '%imogiri%' or address like '%SELOPAMIORO%' or address like '%SRIHARJO%' or address like '%KEBON AGUNG%' or address like '%KEBONAGUNG%' or address like '%KARANG TENGAH%' or address like '%KARANGTENGAH%' or address like '%GIRIREJO%' or address like '%KARANGTALUN%' or address like '%WUKIRSARI%';
+
+update hospital.tc_mr set sub_district_id = 3402100 where sub_district_id is null and district_id = 3402 and address like '%dlingo%' or address like '%MANGUNAN%' or address like '%MUNTUK%' or address like '%DLINGO%' or address like '%TEMUWUH%' or address like '%JATIMULYO%' or address like '%TERONG%';
+
+update hospital.tc_mr set sub_district_id = 3402110 where sub_district_id is null and district_id = 3402 and address like '%pleret%' or address like '%WONOKROMO%' or address like '%SEGOROYOSO%' or address like '%BAWURAN%' or address like '%WONOLELO%';
+
+update hospital.tc_mr set sub_district_id = 3402120 where sub_district_id is null and district_id = 3402 and address like '%PIYUNGAN%' or address like '%SITIMULYO%' or address like '%SRIMULYO%' or address like '%SRIMARTANI%';
+
+update hospital.tc_mr set sub_district_id = 3402130 where sub_district_id is null and district_id = 3402 and address like '%BANGUNTAPAN%' or address like '%TAMANAN%' or address like '%JAGALAN%' or address like '%WIROKERTEN%' or address like '%JAMBIDAN%' or address like '%POTORONO%' or address like '%BATURETNO%' or address like '%TAMANAN%' or address like '%BANGUNTAPAN%';
+
+update hospital.tc_mr set sub_district_id = 3402140 where sub_district_id is null and district_id = 3402 and address like '%SEWON%' or address like '%PENDOWOHARJO%' or address like '%TIMBULHARJO%' or address like '%BANGUNHARJO%' or address like '%PANGGUNGHARJO%';
+
+update hospital.tc_mr set sub_district_id = 3402150 where sub_district_id is null and district_id = 3402 and address like '%KASIHAN%' or address like '%BANGUNJIWO%' or address like '%TIRTONIRMOLO%' or address like '%TAMANTIRTO%' or address like '%NGESTIHARJO%';
+
+update hospital.tc_mr set sub_district_id = 3402160 where sub_district_id is null and district_id = 3402 and address like '%PAJANGAN%' or address like '%TRIWIDADI%' or address like '%SENDANGSARI%' or address like '%GUWOSARI%';
+
+update hospital.tc_mr set sub_district_id = 3402170 where sub_district_id is null and district_id = 3402 and address like '%SEDAYU%' or address like '%ARGODADI%' or address like '%ARGOREJO%' or address like '%ARGOSARI%' or address like 'ARGOMULYO';
+
+update hospital.tc_mr set sub_district_id = 3402070 where sub_district_id is null and district_id = 3402 and address like '%palbapang%' or address like '%ringin harjo%' or address like '%bantul%' or address like '%sabdodadi%' or address like '%trirenggo%';
+
+
+/*	Village	*/
+update hospital.tc_mr set village_id = 3402010001 where village_id is null and sub_district_id = 3402010 and address like '%PONCOSARI%';
+
+update hospital.tc_mr set village_id = 3402010002 where village_id is null and sub_district_id = 3402010 and address like '%TRIMURTI%'; 
+update hospital.tc_mr set village_id = 3402020001 where village_id is null and sub_district_id = 3402020 and address like '%GADINGSARI%';
+
+update hospital.tc_mr set village_id = 3402020002 where village_id is null and sub_district_id = 3402020 and address like '%GADINGHARJO%'; 
+update hospital.tc_mr set village_id = 3402020003 where village_id is null and sub_district_id = 3402020 and address like '%SRIGADING%';
+
+update hospital.tc_mr set village_id = 3402020004 where village_id is null and sub_district_id = 3402020 and address like '%MURTIGADING%';
+
+update hospital.tc_mr set village_id = 3402030001 where village_id is null and sub_district_id = 3402030 and address like '%TIRTOHARGO%';
+
+update hospital.tc_mr set village_id = 3402030002 where village_id is null and sub_district_id = 3402030 and address like '%PARANGTRITIS%'; 
+update hospital.tc_mr set village_id = 3402030003 where village_id is null and sub_district_id = 3402030 and address like '%DONOTIRTO%';
+
+update hospital.tc_mr set village_id = 3402030004 where village_id is null and sub_district_id = 3402030 and address like '%TIRTOSARI%'; 
+update hospital.tc_mr set village_id = 3402030005 where village_id is null and sub_district_id = 3402030 and address like '%TIRTOMULYO%';
+
+update hospital.tc_mr set village_id = 3402040001 where village_id is null and sub_district_id = 3402040 and address like '%SELOHARJO%';
+
+update hospital.tc_mr set village_id = 3402040002 where village_id is null and sub_district_id = 3402040 and address like '%PANJANGREJO%'; 
+update hospital.tc_mr set village_id = 3402040003 where village_id is null and sub_district_id = 3402040 and address like '%SRIHARDONO%';
+
+update hospital.tc_mr set village_id = 3402050001 where village_id is null and sub_district_id = 3402050 and address like '%SIDOMULYO%';
+
+update hospital.tc_mr set village_id = 3402050002 where village_id is null and sub_district_id = 3402050 and address like '%MULYODADI%'; 
+update hospital.tc_mr set village_id = 3402050003 where village_id is null and sub_district_id = 3402050 and address like '%SUMBERMULYO%';
+
+update hospital.tc_mr set village_id = 3402060001 where village_id is null and sub_district_id = 3402060 and address like '%CATURHARJO%';
+
+update hospital.tc_mr set village_id = 3402060002 where village_id is null and sub_district_id = 3402060 and address like '%TRIHARJO%'; 
+update hospital.tc_mr set village_id = 3402060003 where village_id is null and sub_district_id = 3402060 and address like '%GILANGHARJO%'; 
+update hospital.tc_mr set village_id = 3402060004 where village_id is null and sub_district_id = 3402060 and address like '%WIJIREJO%';
+
+update hospital.tc_mr set village_id = 3402070001 where village_id is null and sub_district_id = 3402070 and address like '%PALBAPANG%';
+
+update hospital.tc_mr set village_id = 3402070002 where village_id is null and sub_district_id = 3402070 and address like '%RINGIN HARJO%'; 
+update hospital.tc_mr set village_id = 3402070003 where village_id is null and sub_district_id = 3402070 and address like '%BANTUL%'; 
+update hospital.tc_mr set village_id = 3402070004 where village_id is null and sub_district_id = 3402070 and address like '%TRIRENGGO%'; 
+update hospital.tc_mr set village_id = 3402070005 where village_id is null and sub_district_id = 3402070 and address like '%SABDODADI%';
+
+update hospital.tc_mr set village_id = 3402080001 where village_id is null and sub_district_id = 3402080 and address like '%PATALAN%';
+
+update hospital.tc_mr set village_id = 3402080002 where village_id is null and sub_district_id = 3402080 and address like '%CANDEN%'; 
+update hospital.tc_mr set village_id = 3402080003 where village_id is null and sub_district_id = 3402080 and address like '%SUMBER AGUNG%'; 
+update hospital.tc_mr set village_id = 3402080004 where village_id is null and sub_district_id = 3402080 and address like '%TRIMULYO%';
+
+update hospital.tc_mr set village_id = 3402090001 where village_id is null and sub_district_id = 3402090 and address like '%SELOPAMIORO%';
+
+update hospital.tc_mr set village_id = 3402090002 where village_id is null and sub_district_id = 3402090 and address like '%SRIHARJO%'; 
+update hospital.tc_mr set village_id = 3402090003 where village_id is null and sub_district_id = 3402090 and address like '%KEBON AGUNG%'; 
+update hospital.tc_mr set village_id = 3402090004 where village_id is null and sub_district_id = 3402090 and address like '%KARANG TENGAH%';
+
+update hospital.tc_mr set village_id = 3402090005 where village_id is null and sub_district_id = 3402090 and address like '%GIRIREJO%';
+
+update hospital.tc_mr set village_id = 3402090006 where village_id is null and sub_district_id = 3402090 and address like '%KARANGTALUN%'; 
+update hospital.tc_mr set village_id = 3402090007 where village_id is null and sub_district_id = 3402090 and address like '%IMOGIRI%'; 
+update hospital.tc_mr set village_id = 3402090008 where village_id is null and sub_district_id = 3402090 and address like '%WUKIRSARI%';
+
+update hospital.tc_mr set village_id = 3402100001 where village_id is null and sub_district_id = 3402100 and address like '%MANGUNAN%';
+
+update hospital.tc_mr set village_id = 3402100002 where village_id is null and sub_district_id = 3402100 and address like '%MUNTUK%'; 
+update hospital.tc_mr set village_id = 3402100003 where village_id is null and sub_district_id = 3402100 and address like '%DLINGO%'; 
+update hospital.tc_mr set village_id = 3402100004 where village_id is null and sub_district_id = 3402100 and address like '%TEMUWUH%';
+
+update hospital.tc_mr set village_id = 3402100005 where village_id is null and sub_district_id = 3402100 and address like '%JATIMULYO%';
+
+update hospital.tc_mr set village_id = 3402100006 where village_id is null and sub_district_id = 3402100 and address like '%TERONG%'; 
+update hospital.tc_mr set village_id = 3402110001 where village_id is null and sub_district_id = 3402110 and address like '%WONOKROMO%';
+
+update hospital.tc_mr set village_id = 3402110002 where village_id is null and sub_district_id = 3402110 and address like '%PLERET%'; 
+update hospital.tc_mr set village_id = 3402110003 where village_id is null and sub_district_id = 3402110 and address like '%SEGOROYOSO%'; 
+update hospital.tc_mr set village_id = 3402110004 where village_id is null and sub_district_id = 3402110 and address like '%BAWURAN%';
+
+update hospital.tc_mr set village_id = 3402110005 where village_id is null and sub_district_id = 3402110 and address like '%WONOLELO%';
+
+update hospital.tc_mr set village_id = 3402120001 where village_id is null and sub_district_id = 3402120 and address like '%SITIMULYO%';
+
+update hospital.tc_mr set village_id = 3402120002 where village_id is null and sub_district_id = 3402120 and address like '%SRIMULYO%'; 
+update hospital.tc_mr set village_id = 3402120003 where village_id is null and sub_district_id = 3402120 and address like '%SRIMARTANI%'; 
+update hospital.tc_mr set village_id = 3402130001 where village_id is null and sub_district_id = 3402130 and address like '%TAMANAN%';
+
+update hospital.tc_mr set village_id = 3402130002 where village_id is null and sub_district_id = 3402130 and address like '%JAGALAN%'; 
+update hospital.tc_mr set village_id = 3402130003 where village_id is null and sub_district_id = 3402130 and address like '%SINGOSAREN%'; 
+update hospital.tc_mr set village_id = 3402130004 where village_id is null and sub_district_id = 3402130 and address like '%WIROKERTEN%'; 
+update hospital.tc_mr set village_id = 3402130005 where village_id is null and sub_district_id = 3402130 and address like '%JAMBIDAN%';
+
+update hospital.tc_mr set village_id = 3402130006 where village_id is null and sub_district_id = 3402130 and address like '%POTORONO%'; 
+update hospital.tc_mr set village_id = 3402130007 where village_id is null and sub_district_id = 3402130 and address like '%BATURETNO%'; 
+update hospital.tc_mr set village_id = 3402130008 where village_id is null and sub_district_id = 3402130 and address like '%BANGUNTAPAN%'; 
+update hospital.tc_mr set village_id = 3402140001 where village_id is null and sub_district_id = 3402140 and address like '%PENDOWOHARJO%';
+
+update hospital.tc_mr set village_id = 3402140002 where village_id is null and sub_district_id = 3402140 and address like '%TIMBULHARJO%'; 
+update hospital.tc_mr set village_id = 3402140003 where village_id is null and sub_district_id = 3402140 and address like '%BANGUNHARJO%'; 
+update hospital.tc_mr set village_id = 3402140004 where village_id is null and sub_district_id = 3402140 and address like '%PANGGUNGHARJO%'; 
+update hospital.tc_mr set village_id = 3402150001 where village_id is null and sub_district_id = 3402150 and address like '%BANGUNJIWO%';
+
+update hospital.tc_mr set village_id = 3402150002 where village_id is null and sub_district_id = 3402150 and address like '%TIRTONIRMOLO%'; 
+update hospital.tc_mr set village_id = 3402150003 where village_id is null and sub_district_id = 3402150 and address like '%TAMANTIRTO%'; 
+update hospital.tc_mr set village_id = 3402150004 where village_id is null and sub_district_id = 3402150 and address like '%NGESTIHARJO%'; 
+update hospital.tc_mr set village_id = 3402160001 where village_id is null and sub_district_id = 3402160 and address like '%TRIWIDADI%';
+
+update hospital.tc_mr set village_id = 3402160002 where village_id is null and sub_district_id = 3402160 and address like '%SENDANGSARI%'; 
+update hospital.tc_mr set village_id = 3402160003 where village_id is null and sub_district_id = 3402160 and address like '%GUWOSARI%'; 
+update hospital.tc_mr set village_id = 3402170001 where village_id is null and sub_district_id = 3402170 and address like '%ARGODADI%';
+
+update hospital.tc_mr set village_id = 3402170002 where village_id is null and sub_district_id = 3402170 and address like '%ARGOREJO%'; 
+update hospital.tc_mr set village_id = 3402170003 where village_id is null and sub_district_id = 3402170 and address like '%ARGOSARI%'; 
+update hospital.tc_mr set village_id = 3402170004 where village_id is null and sub_district_id = 3402170 and address like 'ARGOMULYO'; 
+
+update hospital.tc_mr set education_id = 99 where fs_kd_pendidikan_dk = '';
+update hospital.tc_mr set education_id = 1 where fs_kd_pendidikan_dk = '1';
+update hospital.tc_mr set education_id = 2 where fs_kd_pendidikan_dk = '2';
+update hospital.tc_mr set education_id = 2 where fs_kd_pendidikan_dk = '3';
+update hospital.tc_mr set education_id = 3 where fs_kd_pendidikan_dk = '4';
+update hospital.tc_mr set education_id = 4 where fs_kd_pendidikan_dk = '5';
+update hospital.tc_mr set education_id = 5 where fs_kd_pendidikan_dk = '6';
+update hospital.tc_mr set education_id = 6 where fs_kd_pendidikan_dk = '7';
+update hospital.tc_mr set education_id = 9 where fs_kd_pendidikan_dk = 'X';
+alter table hospital.tc_mr add job_id tinyint unsigned after education_id;
+update hospital.tc_mr set job_id = 24 where FS_KD_PEKERJAAN_DK = '';
+update hospital.tc_mr set job_id = 5 where FS_KD_PEKERJAAN_DK = '1';
+update hospital.tc_mr set job_id = 5 where FS_KD_PEKERJAAN_DK = '001';
+update hospital.tc_mr set job_id = 6 where FS_KD_PEKERJAAN_DK = '002';
+update hospital.tc_mr set job_id = 6 where FS_KD_PEKERJAAN_DK = '2';
+update hospital.tc_mr set job_id = 11 where FS_KD_PEKERJAAN_DK = '3';
+update hospital.tc_mr set job_id = 11 where FS_KD_PEKERJAAN_DK = '003';
+update hospital.tc_mr set job_id = 12 where FS_KD_PEKERJAAN_DK = '004';
+update hospital.tc_mr set job_id = 12 where FS_KD_PEKERJAAN_DK = '4';
+update hospital.tc_mr set job_id = 4 where FS_KD_PEKERJAAN_DK = '5';
+update hospital.tc_mr set job_id = 4 where FS_KD_PEKERJAAN_DK = '005';
+update hospital.tc_mr set job_id = 3 where FS_KD_PEKERJAAN_DK = '6';
+update hospital.tc_mr set job_id = 3 where FS_KD_PEKERJAAN_DK = '006';
+update hospital.tc_mr set job_id = 2 where FS_KD_PEKERJAAN_DK = '7';
+update hospital.tc_mr set job_id = 2 where FS_KD_PEKERJAAN_DK = '007';
+update hospital.tc_mr set job_id = 24 where FS_KD_PEKERJAAN_DK = '8';
+update hospital.tc_mr set job_id = 24 where FS_KD_PEKERJAAN_DK = '008';
+update hospital.tc_mr set job_id = 14 where FS_KD_PEKERJAAN_DK = '9';
+update hospital.tc_mr set job_id = 14 where FS_KD_PEKERJAAN_DK = '009';
+update hospital.tc_mr set job_id = 22 where FS_KD_PEKERJAAN_DK = '10';
+update hospital.tc_mr set job_id = 22 where FS_KD_PEKERJAAN_DK = '010';
+update hospital.tc_mr set job_id = 23 where FS_KD_PEKERJAAN_DK = '11';
+update hospital.tc_mr set job_id = 23 where FS_KD_PEKERJAAN_DK = '011';
+update hospital.tc_mr set job_id = 1 where FS_KD_PEKERJAAN_DK = '12';
+update hospital.tc_mr set job_id = 1 where FS_KD_PEKERJAAN_DK = '012';
+update hospital.tc_mr set job_id = 1 where FS_KD_PEKERJAAN_DK = '13';
+update hospital.tc_mr set job_id = 1 where FS_KD_PEKERJAAN_DK = '013';
+update hospital.tc_mr set job_id = 24 where FS_KD_PEKERJAAN_DK = '14';
+update hospital.tc_mr set job_id = 24 where FS_KD_PEKERJAAN_DK = '014';
+update hospital.tc_mr set job_id = 13 where FS_KD_PEKERJAAN_DK = '15';
+update hospital.tc_mr set job_id = 13 where FS_KD_PEKERJAAN_DK = '015';
+update hospital.tc_mr set job_id = 24 where FS_KD_PEKERJAAN_DK = 'X';
+update hospital.tc_mr set job_id = 24 where FS_KD_PEKERJAAN_DK = 'XXX';
+alter table hospital.tc_mr add marital_status_id tinyint unsigned after job_id;
+alter table hospital.tc_mr add registration_date date after marital_status_id;
+alter table hospital.tc_mr add phone varchar(100) after registration_date;
+alter table hospital.tc_mr add penanggungjawab_name varchar(100) after phone;
+alter table hospital.tc_mr add penanggungjawab_address varchar(255) after penanggungjawab_name;
+alter table hospital.tc_mr add penanggungjawab_telp varchar(100) after penanggungjawab_address;
+alter table hospital.tc_mr add family_relationship_id tinyint unsigned after penanggungjawab_telp;
+update hospital.tc_mr set marital_status_id = 2 where fs_kd_status_kawin_dk = '1';
+update hospital.tc_mr set marital_status_id = 1 where fs_kd_status_kawin_dk = '2';
+update hospital.tc_mr set marital_status_id = 3 where fs_kd_status_kawin_dk = '3';
+update hospital.tc_mr set marital_status_id = 4 where fs_kd_status_kawin_dk = '4';
+update hospital.tc_mr set marital_status_id = null where fs_kd_status_kawin_dk = 'X';
+update hospital.tc_mr set registration_date = FD_TGL_MR;
+update hospital.tc_mr set phone = FS_TLP_PASIEN;
+update hospital.tc_mr set penanggungjawab_name = FS_NM_KELUARGA;
+update hospital.tc_mr set penanggungjawab_address = FS_ALM1_KELUARGA;
+update hospital.tc_mr set penanggungjawab_telp = FS_TELP_KELUARGA;
+update hospital.tc_mr set family_relationship_id = 5 where FS_HUB_KELUARGA like '%suami%';
+update hospital.tc_mr set family_relationship_id = 1 where FS_HUB_KELUARGA = 'orangtua';
+update hospital.tc_mr set family_relationship_id = 1 where FS_HUB_KELUARGA = 'orang tua';
+update hospital.tc_mr set family_relationship_id = 7 where FS_HUB_KELUARGA like '%anak%';
+update hospital.tc_mr set family_relationship_id = 3 where FS_HUB_KELUARGA like '%teman%';
+update hospital.tc_mr set family_relationship_id = 6 where FS_HUB_KELUARGA like '%istri%';
+update hospital.tc_mr set family_relationship_id = 5 where FS_HUB_KELUARGA like '%suami%';
+update hospital.tc_mr set family_relationship_id = 1 where FS_HUB_KELUARGA like '%ayah%';
+update hospital.tc_mr set family_relationship_id = 1 where FS_HUB_KELUARGA like '%ibu%';
+alter table hospital.tc_mr add mother varchar(100) after family_relationship_id;
+update hospital.tc_mr set mother = FS_NM_IBU_KANDUNG;
+update hospital.tc_mr set agama_id = 1 where FS_KD_AGAMA = '1';
+update hospital.tc_mr set agama_id = 2 where FS_KD_AGAMA = '2';
+update hospital.tc_mr set agama_id = 3 where FS_KD_AGAMA = '3';
+update hospital.tc_mr set agama_id = 4 where FS_KD_AGAMA = '4';
+update hospital.tc_mr set agama_id = 5 where FS_KD_AGAMA = '5';
+update hospital.tc_mr set agama_id = 6 where FS_KD_AGAMA = '6'; 
+
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '2013-08-13' WHERE (`id` = '004460');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '2017-01-16' WHERE (`id` = '012759');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1955-10-22' WHERE (`id` = '013220');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1981-02-07' WHERE (`id` = '013537');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '2013-06-06' WHERE (`id` = '013583');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1966-03-31' WHERE (`id` = '014548');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1992-06-23' WHERE (`id` = '014634');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1990-06-15' WHERE (`id` = '016021');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1991-12-30' WHERE (`id` = '016346');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '2013-05-20' WHERE (`id` = '017316');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1965-07-23' WHERE (`id` = '018412');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1984-10-10' WHERE (`id` = '019110');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '2018-05-09' WHERE (`id` = '019250');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '2018-05-18' WHERE (`id` = '019364');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1979-04-12' WHERE (`id` = '024584');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1975-07-30' WHERE (`id` = '025081');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1965-04-05' WHERE (`id` = '027136');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1984-11-02' WHERE (`id` = '028894');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1985-07-09' WHERE (`id` = '029278');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1991-04-23' WHERE (`id` = '030067');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1989-04-27' WHERE (`id` = '031158');
+UPDATE `simrs`.`patients` SET `birth_place` = '', `birth_date` = '1984-03-05' WHERE (`id` = '031234');
+UPDATE `simrs`.`patients` SET `birth_date` = null WHERE (`id` = '016654');
+UPDATE `simrs`.`patients` SET `birth_date` = null WHERE (`id` = '018245');
+UPDATE `simrs`.`patients` SET `birth_date` = null WHERE (`id` = '028988');
+
+insert into dev_simrs_rsgm.patients 	(id, patient_type, nik,name,sex,birth_place,birth_date,golongan_darah,
+address,suku_id,bahasa_id,buta_huruf,agama_id,village_id,sub_district_id,
+district_id,province_id,education_id,job_id,user_id,marital_status_id,registration_date,
+phone,penanggungjawab_name,penanggungjawab_address,penanggungjawab_telp,family_relationship_id,mother)             
+select 	ID, 'L',nik,name,sex,birth_place,birth_date,golongan_darah,
+address,suku_id,bahasa_id,buta_huruf,agama_id,village_id,sub_district_id,
+district_id,province_id,education_id,job_id,1,marital_status_id,registration_date,
+phone,penanggungjawab_name,penanggungjawab_address,penanggungjawab_telp,family_relationship_id,mother
+    from hospital.tc_mr;
+
+
+/*
+    Obat
+*/
+
+CREATE TABLE hospital.tb_barang (fs_kd_barang text, fs_nm_barang text, 
+fb_aktif int, fs_kd_bentuk text, fs_kd_gol_obat_dk text, fs_kd_golongan text, 
+fs_kd_kelompok text, fs_kd_pabrik text, fs_kd_sifat text, fs_kd_grup_rek text, 
+fn_slow_moving int, fn_death_stock int, fn_tax double, fs_metode_gen_hna int, 
+fs_kd_iso text, fn_dosis_racik double, fs_kd_sat_racik text, FS_KD_SAT_JUAL text, 
+fb_pembelian_bebas int, fn_ss int, fn_het double, fs_kd_generik text, 
+fn_tahan_stock int, fn_lt_stock int, fs_no_barcode text, fn_counter_formula int, 
+fs_kd_sat_etiket text, fs_kd_carapakai_etiket text, fs_kd_petugas_entry text, 
+fd_tgl_entry text, fs_jam_entry text, fs_kd_kelas_terapi text, fs_kd_gol_terapi text, 
+fs_kd_original text, fs_kd_abc text, fs_kd_petugas_upd text, fs_kd_jenisobat_etiket text, 
+CRTTGL text, CRTJAM text, CRTIPA text, CRTVER text, UPDTGL text, UPDJAM text, UPDIPA text, 
+UPDVER text);
+LOAD DATA LOCAL INFILE 'D:/Workspaces/SMC/Data/RSGM/2020.09.16.CSV-DB/Tb_barang.csv' INTO TABLE hospital.tb_barang FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS;
+ALTER TABLE hospital.tb_barang 
+CHANGE COLUMN fs_kd_barang fs_kd_barang VARCHAR(12) NOT NULL ,
+ADD PRIMARY KEY (fs_kd_barang);
+UPDATE hospital.tb_barang SET fs_kd_barang = 'BHP0666334' WHERE (fs_kd_barang = 'BHP00666334');
+
+alter table hospital.tb_barang add jenis int after fs_kd_gol_obat_dk;
+
+ALTER TABLE hospital.tb_barang 
+CHANGE COLUMN fs_kd_barang fs_kd_barang VARCHAR(10) NOT NULL ;
+update hospital.tb_barang set jenis = null where fs_kd_golongan = '';
+update hospital.tb_barang set jenis = 2 where fs_kd_golongan = '001';
+update hospital.tb_barang set jenis = 41 where fs_kd_golongan = '003';
+update hospital.tb_barang set jenis = 10 where fs_kd_golongan = '004';
+update hospital.tb_barang set jenis = 11 where fs_kd_golongan = '005';
+update hospital.tb_barang set jenis = 14 where fs_kd_golongan = '012';
+update hospital.tb_barang set jenis = 17 where fs_kd_golongan = '014';
+update hospital.tb_barang set jenis = 12 where fs_kd_golongan = '016';
+update hospital.tb_barang set jenis = 27 where fs_kd_golongan = '018';
+update hospital.tb_barang set jenis = 9 where fs_kd_golongan = '022';
+update hospital.tb_barang set jenis = 57 where fs_kd_golongan = '023';
+update hospital.tb_barang set jenis = 37 where fs_kd_golongan = '024';
+update hospital.tb_barang set jenis = 10 where fs_kd_golongan = '026';
+update hospital.tb_barang set jenis = 28 where fs_kd_golongan = '030';
+update hospital.tb_barang set jenis = 1 where fs_kd_golongan = '031';
+update hospital.tb_barang set jenis = 25 where fs_kd_golongan = '032';
+update hospital.tb_barang set jenis = 38 where fs_kd_golongan = '033';
+update hospital.tb_barang set jenis = 48 where fs_kd_golongan = '035';
+update hospital.tb_barang set jenis = 20 where fs_kd_golongan = '038';
+update hospital.tb_barang set jenis = 25 where fs_kd_golongan = '043';
+update hospital.tb_barang set jenis = 25 where fs_kd_golongan = '044';
+update hospital.tb_barang set jenis = 10 where fs_kd_golongan = '045';
+update hospital.tb_barang set jenis = 14 where fs_kd_golongan = '046';
+update hospital.tb_barang set jenis = 24 where fs_kd_golongan = '052';
+update hospital.tb_barang set jenis = 33 where fs_kd_golongan = '053';
+update hospital.tb_barang set jenis = 10 where fs_kd_golongan = '059';
+update hospital.tb_barang set jenis = 10 where fs_kd_golongan = '060';
+update hospital.tb_barang set jenis = 55 where fs_kd_golongan = '079';
+alter table hospital.tb_barang add golongan int after fs_kd_kelompok;
+update hospital.tb_barang set golongan = 5 where fs_kd_kelompok = '001';
+update hospital.tb_barang set golongan = 4 where fs_kd_kelompok = '003';
+update hospital.tb_barang set golongan = 5 where fs_kd_kelompok = '004';
+update hospital.tb_barang set golongan = 2 where fs_kd_kelompok = '005';
+update hospital.tb_barang set golongan = 1 where fs_kd_kelompok = '006';
+
+insert into dev_simrs_rsgm.ref_drugs (code,name,drug_golongan_id,drug_jenis_id,active) 
+select fs_kd_barang, fs_nm_barang, golongan, jenis, fb_aktif from hospital.tb_barang
+
+/*
+    Bangsal
+*/
+
+UPDATE dev_simrs_rsgm.ref_clinics SET name = 'GATOTKACA PAVILLIUN' WHERE (id = '087');
+UPDATE dev_simrs_rsgm.ref_clinics SET name = 'MARIA PAVILLIUN' WHERE (id = '088');
+UPDATE dev_simrs_rsgm.ref_clinics SET name = 'ANGELA PAVILLIUN' WHERE (id = '089');
+UPDATE dev_simrs_rsgm.ref_clinics SET name = 'CENDANA PAVILIUN' WHERE (id = '090');
+UPDATE dev_simrs_rsgm.ref_clinics SET name = 'SRIKANDI PAVILLIUN' WHERE (id = '091');
+UPDATE dev_simrs_rsgm.ref_clinics SET name = 'ARJUNA PAVILLIUN' WHERE (id = '092');
+UPDATE dev_simrs_rsgm.ref_clinics SET kelas_id = null, name = 'GARUDA PAVILLIUN' WHERE (id = '209');
+UPDATE dev_simrs_rsgm.ref_clinics SET kelas_id = null, name = 'DIRGANTARA PAVILIUN' WHERE (id = '210');
+UPDATE dev_simrs_rsgm.ref_clinics SET kelas_id = null, name = 'WIJAYAKUKSUMA PAVILLIUN' WHERE (id = '211');
+UPDATE dev_simrs_rsgm.ref_clinics SET kelas_id = null, name = 'TIARA PAVILLIUN' WHERE (id = '212');
+UPDATE dev_simrs_rsgm.ref_clinics SET kelas_id = null, name = 'BABY ROOM' WHERE (id = '213');
+UPDATE dev_simrs_rsgm.ref_clinics SET type = 'rawat inap' WHERE (id = '210');
+
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET bangsal = 'GATOTKACA PAVILLIUN', name = 'GATOTKACA PAVILLIUN 3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '2');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET bangsal = 'MARIA PAVILLIUN', name = 'MARIA PAVILLIUN 3', kelas_id = '3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '6');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '1');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET bangsal = 'SRIKANDI PAVILLIUN', name = 'SRIKANDI PAVILLIUN 3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '3');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET bangsal = 'ANGELA PAVILLIUN', name = 'ANGELA PAVILLIUN 3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '4');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET bangsal = 'CENDANA PAVILIUN', name = 'CENDANA PAVILIUN 3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '5');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET clinic_id = '209', bangsal = 'GARUDA PAVILLIUN', name = 'GARUDA PAVILLIUN 3', kelas_id = '3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '7');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET clinic_id = '210', bangsal = 'DIRGANTARA PAVILIUN', name = 'DIRGANTARA PAVILIUN 3', kelas_id = '3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '8');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET clinic_id = '211', bangsal = 'WIJAYAKUKSUMA PAVILLIUN', name = 'WIJAYAKUKSUMA PAVILLIUN 3', kelas_id = '3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '9');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET clinic_id = '212', bangsal = 'TIARA PAVILLIUN', name = 'TIARA PAVILLIUN', kelas_id = '3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '10');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET clinic_id = '213', bangsal = 'BABY ROOM', name = 'BABY ROOM', kelas_id = '3', tahun_awal = 2020, bed = '20', bed_number = ' ' WHERE (id = '11');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET bangsal = 'ARJUNA PAVILLIUN', name = 'ARJUNA PAVILLIUN 3' WHERE (id = '1');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET name = 'BABY ROOM 3', kelas_id = '3' WHERE (id = '11');
+UPDATE dev_simrs_rsgm.ref_inpatient_clinics SET name = 'TIARA PAVILLIUN 3' WHERE (id = '10');
+
+DELETE FROM dev_simrs_rsgm.ref_inpatient_clinics WHERE (id = '12');
+DELETE FROM dev_simrs_rsgm.ref_inpatient_clinics WHERE (id = '13');
+DELETE FROM dev_simrs_rsgm.ref_inpatient_clinics WHERE (id = '14');
+DELETE FROM dev_simrs_rsgm.ref_inpatient_clinics WHERE (id = '15');
+DELETE FROM dev_simrs_rsgm.ref_inpatient_clinics WHERE (id = '16');
+DELETE FROM dev_simrs_rsgm.ref_inpatient_clinics WHERE (id = '17');
+DELETE FROM dev_simrs_rsgm.ref_inpatient_clinics WHERE (id = '18');
+DELETE FROM dev_simrs_rsgm.ref_inpatient_clinics WHERE (id = '19');
